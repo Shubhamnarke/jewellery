@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jewelry on Rent</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Full-Screen Modal */
+        .full-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            overflow: hidden;
+        }
+
+        .image-wrapper {
+            position: relative;
+            width: 90%;
+            height: 90%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .full-modal img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            cursor: zoom-in;
+            transition: transform 0.3s ease;
+            position: absolute;
+        }
+
+        .zoomed {
+            cursor: grab;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 30px;
+            color: white;
+            cursor: pointer;
+        }
+
+        .nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 30px;
+            color: white;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .prev-btn { left: 20px; }
+        .next-btn { right: 20px; }
+    </style>
+</head>
+<body class="bg-gray-100 flex justify-center items-center min-h-screen">
+    <div class="container mx-auto p-4">
+        <h1 class="text-3xl font-bold text-center mb-6 text-gray-700">jewellery on Rent</h1>
+        
+        <!-- Jewelry Items Container -->
+        <div id="jewelryContainer" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+    </div>
+
+    <!-- Full-Screen Modal -->
+    <div id="fullModal" class="hidden full-modal">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <span class="nav-btn prev-btn hidden" onclick="prevImage()">&#10094;</span>
+        
+        <div class="image-wrapper">
+            <img id="modalImage" src="" onclick="toggleZoom(event)">
+        </div>
+        
+        <span class="nav-btn next-btn hidden" onclick="nextImage()">&#10095;</span>
+    </div>
+
+    <script>
+        const jewelryItems = [
+            {
+                name: "Item 1",
+                rent: "Rs. 1000",
+                deposit: "Rs. 1000",
+                images: ["images/P1/T1.jpeg", "images/P1/T2.jpeg", "images/P1/T3.jpeg"]
+            },
+            {
+                name: "Item 2",
+                rent: "Rs. 1000",
+                deposit: "Rs. 1500",
+                images: ["images/P2/T5.jpeg","images/P2/T1.jpeg", "images/P2/T2.jpeg", "images/P2/T3.jpeg", "images/P2/T4.jpeg"]
+            },
+            {
+                name: "Item 3",
+                rent: "Rs. 3300",
+                deposit: "Rs. 3300",
+                images: ["images/P3/T1.jpeg", "images/P3/T2.jpeg", "images/P3/T3.jpeg", "images/P3/T4.jpeg"]
+            }
+        ];
+
+        function loadJewelryItems() {
+            const container = document.getElementById("jewelryContainer");
+            container.innerHTML = ""; 
+
+            jewelryItems.forEach((item, index) => {
+                const card = document.createElement("div");
+                card.classList.add("bg-gradient-to-r", "from-blue-200", "to-purple-200", "p-4", "rounded-lg", "shadow-lg", "cursor-pointer", "transition", "transform", "hover:scale-105", "hover:shadow-xl");
+                card.onclick = () => openModal(index);
+
+                card.innerHTML = `
+                    <div class="zoom-container">
+                        <img src="${item.images[0]}" alt="${item.name}" class="w-full h-48 object-contain rounded-md">
+                    </div>
+                    <p class="text-center mt-2 font-semibold text-gray-700">${item.name}</p>
+                    <p class="text-center text-sm text-gray-600">Rent: ${item.rent} | Deposit: ${item.deposit}</p>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        let currentImages = [];
+        let currentIndex = 0;
+        let zoomed = false;
+
+        function openModal(index) {
+            currentImages = jewelryItems[index].images;
+            currentIndex = 0;
+            updateModalImage();
+            document.getElementById('fullModal').classList.remove('hidden');
+            toggleNavButtons();
+        }
+
+        function closeModal() {
+            document.getElementById('fullModal').classList.add('hidden');
+        }
+
+        function updateModalImage() {
+            document.getElementById('modalImage').src = currentImages[currentIndex];
+        }
+
+        function prevImage() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateModalImage();
+                toggleNavButtons();
+            }
+        }
+
+        function nextImage() {
+            if (currentIndex < currentImages.length - 1) {
+                currentIndex++;
+                updateModalImage();
+                toggleNavButtons();
+            }
+        }
+
+        function toggleNavButtons() {
+            document.querySelector('.prev-btn').classList.toggle('hidden', currentIndex === 0);
+            document.querySelector('.next-btn').classList.toggle('hidden', currentIndex === currentImages.length - 1);
+        }
+
+        document.addEventListener("DOMContentLoaded", loadJewelryItems);
+    </script>
+</body>
+</html>
