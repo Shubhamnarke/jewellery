@@ -2,92 +2,96 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Jewelry on Rent</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Panzoom.js for Zoom & Drag -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/panzoom/9.4.1/panzoom.min.js"></script>
+
     <style>
-        /* Full-Screen Modal */
-        .full-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
+        .gallery-item {
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .gallery-item:hover {
+            transform: scale(1.05);
+        }
+        .modal-content {
+            background-color: rgba(0, 0, 0, 0.9);
+        }
+        .modal-body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 90vh;
+            overflow: hidden;
+        }
+        .zoom-container {
+            position: relative;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.9);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            overflow: hidden;
-        }
-
-        .image-wrapper {
-            position: relative;
-            width: 90%;
-            height: 90%;
             display: flex;
             justify-content: center;
             align-items: center;
             overflow: hidden;
         }
-
-        .full-modal img {
+        #modalImage {
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
-            cursor: zoom-in;
-            transition: transform 0.3s ease;
-            position: absolute;
-        }
-
-        .zoomed {
             cursor: grab;
         }
-
-        .close-btn {
-            position: absolute;
-            top: 20px;
-            right: 30px;
-            font-size: 30px;
-            color: white;
-            cursor: pointer;
-        }
-
-        .nav-btn {
+        .slider {
             position: absolute;
             top: 50%;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
             transform: translateY(-50%);
-            font-size: 30px;
-            color: white;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 10px;
-            cursor: pointer;
-            border-radius: 5px;
         }
-
-        .prev-btn { left: 20px; }
-        .next-btn { right: 20px; }
+        .slider-button {
+            background-color: rgba(255, 255, 255, 0.7);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            padding: 10px;
+        }
     </style>
 </head>
-<body class="bg-gray-100 flex justify-center items-center min-h-screen">
-    <div class="container mx-auto p-4">
-        <h1 class="text-3xl font-bold text-center mb-6 text-gray-700">jewellery on Rent</h1>
+<body class="bg-light">
+
+    <div class="container my-5">
+        <h2 class="text-center mb-4">Jewelry on Rent</h2>
         
-        <!-- Jewelry Items Container -->
-        <div id="jewelryContainer" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+        <div class="row" id="jewelryContainer"></div>
     </div>
 
-    <!-- Full-Screen Modal -->
-    <div id="fullModal" class="hidden full-modal">
-        <span class="close-btn" onclick="closeModal()">&times;</span>
-        <span class="nav-btn prev-btn hidden" onclick="prevImage()">&#10094;</span>
-        
-        <div class="image-wrapper">
-            <img id="modalImage" src="" onclick="toggleZoom(event)">
+    <!-- Modal for Image Viewing -->
+    <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-fullscreen">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="zoom-container">
+                        <img id="modalImage" src="" class="img-fluid" alt="Jewelry Image">
+                        <div class="slider">
+                            <button class="slider-button" onclick="prevImage()">&#10094;</button>
+                            <button class="slider-button" onclick="nextImage()">&#10095;</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        
-        <span class="nav-btn next-btn hidden" onclick="nextImage()">&#10095;</span>
     </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
         const jewelryItems = [
@@ -101,7 +105,7 @@
                 name: "Item 2",
                 rent: "Rs. 1000",
                 deposit: "Rs. 1500",
-                images: ["images/P2/T5.jpeg","images/P2/T1.jpeg", "images/P2/T2.jpeg", "images/P2/T3.jpeg", "images/P2/T4.jpeg"]
+                images: ["images/P2/T5.jpeg", "images/P2/T1.jpeg", "images/P2/T2.jpeg", "images/P2/T3.jpeg", "images/P2/T4.jpeg"]
             },
             {
                 name: "Item 3",
@@ -113,50 +117,47 @@
 
         function loadJewelryItems() {
             const container = document.getElementById("jewelryContainer");
-            container.innerHTML = ""; 
+            container.innerHTML = "";
 
             jewelryItems.forEach((item, index) => {
                 const card = document.createElement("div");
-                card.classList.add("bg-gradient-to-r", "from-blue-200", "to-purple-200", "p-4", "rounded-lg", "shadow-lg", "cursor-pointer", "transition", "transform", "hover:scale-105", "hover:shadow-xl");
-                card.onclick = () => openModal(index);
-
+                card.classList.add("col-md-4", "mb-4");
                 card.innerHTML = `
-                    <div class="zoom-container">
-                        <img src="${item.images[0]}" alt="${item.name}" class="w-full h-48 object-contain rounded-md">
+                    <div class="card shadow-sm gallery-item" onclick="openModal(${index})">
+                        <img src="${item.images[0]}" class="card-img-top img-fluid" alt="${item.name}">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">${item.name}</h5>
+                            <p class="card-text">Rent: ${item.rent} | Deposit: ${item.deposit}</p>
+                        </div>
                     </div>
-                    <p class="text-center mt-2 font-semibold text-gray-700">${item.name}</p>
-                    <p class="text-center text-sm text-gray-600">Rent: ${item.rent} | Deposit: ${item.deposit}</p>
                 `;
-
                 container.appendChild(card);
             });
         }
 
         let currentImages = [];
         let currentIndex = 0;
-        let zoomed = false;
+        let panzoomInstance;
 
         function openModal(index) {
             currentImages = jewelryItems[index].images;
             currentIndex = 0;
             updateModalImage();
-            document.getElementById('fullModal').classList.remove('hidden');
-            toggleNavButtons();
-        }
-
-        function closeModal() {
-            document.getElementById('fullModal').classList.add('hidden');
+            let modal = new bootstrap.Modal(document.getElementById('imageModal'));
+            modal.show();
         }
 
         function updateModalImage() {
-            document.getElementById('modalImage').src = currentImages[currentIndex];
+            const img = document.getElementById("modalImage");
+            img.src = currentImages[currentIndex];
+            img.onload = initZoom; // Initialize zoom after image loads
+            if (panzoomInstance) panzoomInstance.destroy();
         }
 
         function prevImage() {
             if (currentIndex > 0) {
                 currentIndex--;
                 updateModalImage();
-                toggleNavButtons();
             }
         }
 
@@ -164,16 +165,34 @@
             if (currentIndex < currentImages.length - 1) {
                 currentIndex++;
                 updateModalImage();
-                toggleNavButtons();
             }
         }
 
-        function toggleNavButtons() {
-            document.querySelector('.prev-btn').classList.toggle('hidden', currentIndex === 0);
-            document.querySelector('.next-btn').classList.toggle('hidden', currentIndex === currentImages.length - 1);
+        function initZoom() {
+            const img = document.getElementById("modalImage");
+            panzoomInstance = Panzoom(img, {
+                maxScale: 4,  
+                minScale: 1,  
+                contain: "outside",  
+                canvas: true  
+            });
+
+            img.addEventListener("wheel", panzoomInstance.zoomWithWheel);
+            img.addEventListener("dblclick", () => panzoomInstance.zoom(1));
+            img.addEventListener("mousedown", (e) => {
+                img.style.cursor = "grabbing";
+                panzoomInstance.panStart(e);
+            });
+            img.addEventListener("mouseup", () => {
+                img.style.cursor = "grab";
+            });
+            img.addEventListener("mouseleave", () => {
+                img.style.cursor = "grab";
+            });
         }
 
         document.addEventListener("DOMContentLoaded", loadJewelryItems);
     </script>
+
 </body>
 </html>
